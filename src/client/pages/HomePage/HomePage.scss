@@ -1,0 +1,24 @@
+@import "../../common/styles/references/references";
+
+.container {
+  margin: 15px auto;
+}
+
+.home-page {
+  .example-link {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 200px;
+    height: 100px;
+    font-size: 18px;
+    box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.5);
+    transition: 0.25s box-shadow ease;
+    will-change: box-shadow;
+
+    &:hover,
+    &:focus {
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
