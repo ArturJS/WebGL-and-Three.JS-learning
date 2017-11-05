@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 require('../register.babel'); // babel registration (runtime transpilation for node)
 const path = require('path');
+const mock = require('mock-require');
+
+mock('rxjs', {});
+mock('hammerjs', {});
+mock('rxcss', {});
+
 const rootDir = path.resolve(__dirname, '..');
 /**
  * Define isomorphic constants.
@@ -10,6 +16,7 @@ global.__SERVER__ = true;
 global.__DISABLE_SSR__ = false;  // <----- DISABLES SERVER SIDE RENDERING FOR ERROR DEBUGGING
 global.__DEVELOPMENT__ = process.env.NODE_ENV !== 'production';
 global.__PRODUCTION__ = process.env.NODE_ENV === 'production';
+
 
 if (__DEVELOPMENT__) {
   if (!require('piping')({

@@ -1,11 +1,18 @@
 import React, {Component} from 'react';
 import * as THREE from 'three';
+import Rx from 'rxjs/Rx';
+import Hammer from 'hammerjs';
+import RxCSS from 'rxcss';
 
 import './RotatingCube.scss';
+
 
 export default class RotatingCube extends Component {
   componentDidMount() {
     this.initScene();
+    handleDrag(this.canvasRef).subscribe(([dx, dy]) => {
+      this.updateScene(dx, dy);
+    });
   }
 
   componentWillUnmount() {
@@ -45,19 +52,13 @@ export default class RotatingCube extends Component {
     this.box.name = 'box';
     this.scene.add(this.box);
 
-    this.updateScene();
+    this.updateScene(0, 0);
   };
 
-  updateScene = () => {
-    this.box.rotation.x += 0.01;
-    this.box.rotation.y += 0.01;
-    this.box.rotation.z += 0.01;
+  updateScene = (dx, dy) => {
+    this.box.rotation.x += dy;
+    this.box.rotation.y += dx;
     this.renderer.render(this.scene, this.camera);
-    this.frameId = requestAnimationFrame(this.updateScene);
-  };
-
-  destroyScene = () => {
-    cancelAnimationFrame(this.frameId);
   };
 
   render() {
@@ -69,4 +70,39 @@ export default class RotatingCube extends Component {
         ref={this.setCanvasRef}/>
     );
   }
+}
+
+function handleDrag(domNode) {
+  const hammerPan = new Hammer(domNode, {
+    direction: Hammer.DIRECTION_ALL
+  });
+
+  hammerPan.get('pan').set({direction: Hammer.DIRECTION_ALL});
+
+  const pan$ = Rx.Observable.fromEventPattern(h =>
+    hammerPan.on('panstart panup pandown panmove panend', h)
+  );
+
+  const drag$ = drag(domNode, pan$);
+
+  return drag$
+    .scan(RxCSS.lerp(0.1))
+    .map(p => [p.x, p.y]);
+}
+
+
+function drag(domNode, pan$) {
+  return pan$.filter(e => e.type === 'panstart').switchMap(() => {
+    const move$ = pan$
+      .filter(e => e.type === 'panmove')
+      .map(pm => {
+        return {
+          x: pm.velocityX,
+          y: pm.velocityY
+        };
+      })
+      .takeUntil(pan$.filter(e => e.type === 'panend'));
+
+    return move$;
+  });
 }
