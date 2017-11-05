@@ -166,6 +166,7 @@
     "eslint-plugin-import": "^0.8.0",
     "eslint-plugin-react": "4.0.0",
     "extract-text-webpack-plugin": "2.1.0",
+    "hammer-touchemulator": "0.0.2",
     "jest": "20.0.4",
     "node-sass": "4.5.3",
     "postcss-easy-import": "2.0.0",

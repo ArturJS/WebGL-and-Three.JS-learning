@@ -10,6 +10,7 @@ import {Router} from 'react-router';
 import {Provider} from 'mobx-react';
 import createBrowserHistory from 'history/createBrowserHistory';
 import {syncHistoryWithStore} from 'mobx-react-router';
+import TouchEmulator from 'hammer-touchemulator';
 
 import rootRoutes from './routes';
 import RootShell from './client/common/shells/RootShell';
@@ -44,6 +45,10 @@ if (__CLIENT__) {
     </Router>,
     dest
   );
+
+  if (__DEVELOPMENT__) {
+    TouchEmulator();
+  }
 }
 
 export default Client;

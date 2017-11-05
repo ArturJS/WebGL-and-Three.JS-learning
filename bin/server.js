@@ -6,6 +6,7 @@ const mock = require('mock-require');
 mock('rxjs', {});
 mock('hammerjs', {});
 mock('rxcss', {});
+mock('hammer-touchemulator', {});
 
 const rootDir = path.resolve(__dirname, '..');
 /**

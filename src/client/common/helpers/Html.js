@@ -61,6 +61,9 @@ export default class Html extends Component {
           }
           <script src={assets.javascript.vendor} charSet="UTF-8"/>
           <script src={assets.javascript.main} charSet="UTF-8"/>
+          {__DEVELOPMENT__ &&
+            <script src={assets.javascript.touchemulator} charSet="UTF-8"/>
+          }
         </body>
       </html>
     );

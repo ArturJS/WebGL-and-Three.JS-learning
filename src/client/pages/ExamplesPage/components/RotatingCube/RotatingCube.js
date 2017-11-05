@@ -10,13 +10,14 @@ import './RotatingCube.scss';
 export default class RotatingCube extends Component {
   componentDidMount() {
     this.initScene();
-    handleDrag(this.canvasRef).subscribe(([dx, dy]) => {
-      this.updateScene(dx, dy);
-    });
-  }
 
-  componentWillUnmount() {
-    this.destroyScene();
+    handleDrag(this.canvasRef).subscribe(([dx, dy]) => {
+      this.updateScene({dx, dy});
+    });
+
+    handleZoom(this.canvasRef).subscribe((dZoom) => {
+      this.updateScene({dZoom});
+    });
   }
 
   setCanvasRef = (node) => {
@@ -25,9 +26,7 @@ export default class RotatingCube extends Component {
 
   initScene = () => {
     this.scene = new THREE.Scene();
-    this.renderer = window.WebGLRenderingContext
-      ? new THREE.WebGLRenderer({canvas: this.canvasRef, antialias: true})
-      : new THREE.CanvasRenderer({canvas: this.canvasRef, antialias: true});
+    this.renderer = new THREE.WebGLRenderer({canvas: this.canvasRef, antialias: true});
     const light = new THREE.AmbientLight(0xffffff);
     const {width, height} = this.canvasRef;
 
@@ -46,18 +45,23 @@ export default class RotatingCube extends Component {
 
     this.box = new THREE.Mesh(
       new THREE.BoxGeometry(0.3, 0.3, 0.3),
-      new THREE.MeshNormalMaterial({color: 0xFF0000})
+      new THREE.MeshNormalMaterial()
     );
 
     this.box.name = 'box';
     this.scene.add(this.box);
 
-    this.updateScene(0, 0);
+    this.updateScene();
   };
 
-  updateScene = (dx, dy) => {
+  updateScene = ({dx = 0, dy = 0, dZoom = 0} = {}) => {
     this.box.rotation.x += dy;
     this.box.rotation.y += dx;
+    const scale = this.box.scale.x + dZoom / 5;
+
+    if (scale < 3 && scale > 0.5) {
+      this.box.scale.x = this.box.scale.y = this.box.scale.z = scale;
+    }
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -96,6 +100,7 @@ function drag(domNode, pan$) {
     const move$ = pan$
       .filter(e => e.type === 'panmove')
       .map(pm => {
+        pm.preventDefault();
         return {
           x: pm.velocityX,
           y: pm.velocityY
@@ -105,4 +110,38 @@ function drag(domNode, pan$) {
 
     return move$;
   });
+}
+
+function handleZoom(domNode) {
+  const wheel$ = Rx.Observable.fromEvent(domNode, 'wheel')
+    .map((event) => {
+      event.preventDefault();
+      return -Math.sign(event.deltaY);
+    });
+
+  const hammerPinch = new Hammer(domNode, {
+    direction: Hammer.DIRECTION_ALL
+  });
+
+  hammerPinch.get('pinch').set({
+    direction: Hammer.DIRECTION_ALL,
+    enable: true,
+    threshold: 0,
+    pointers: 0
+  });
+
+  let prevScale = 1;
+
+  const pinch$ = Rx.Observable.fromEventPattern(h => {
+    hammerPinch.on('pinch', h);
+  })
+    .map(e => {
+      e.preventDefault();
+      const dZoom = prevScale < e.scale ? 0.3 : -0.3;
+
+      prevScale = e.scale;
+      return dZoom;
+    });
+
+  return Rx.Observable.merge(wheel$, pinch$);
 }

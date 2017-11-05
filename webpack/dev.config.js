@@ -30,6 +30,9 @@ module.exports = {
     main: [
       'webpack-hot-middleware/client?path=http://' + host + ':' + port + '/__webpack_hmr',
       './src/client.js'
+    ],
+    touchemulator: [
+      './node_modules/hammer-touchemulator/touch-emulator.js'
     ]
   },
   output: {
