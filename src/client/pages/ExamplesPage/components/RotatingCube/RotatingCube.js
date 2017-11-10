@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import * as THREE from 'three';
 import Rx from 'rxjs/Rx';
 import Hammer from 'hammerjs';
-import RxCSS from 'rxcss';
 
 import './RotatingCube.scss';
 
@@ -55,8 +54,14 @@ export default class RotatingCube extends Component {
   };
 
   updateScene = ({dx = 0, dy = 0, dZoom = 0} = {}) => {
-    this.box.rotation.x += dy;
-    this.box.rotation.y += dx;
+    const deltaRotationQuaternion = new THREE.Quaternion()
+      .setFromEuler(new THREE.Euler(dy, dx, 0, 'XYZ'));
+
+    this.box.quaternion.multiplyQuaternions(
+      deltaRotationQuaternion,
+      this.box.quaternion
+    );
+
     const scale = this.box.scale.x + dZoom / 5;
 
     if (scale < 3 && scale > 0.5) {
@@ -90,8 +95,7 @@ function handleDrag(domNode) {
   const drag$ = drag(domNode, pan$);
 
   return drag$
-    .scan(RxCSS.lerp(0.1))
-    .map(p => [p.x, p.y]);
+    .map(p => [p.x / 2, p.y / 2]);
 }
 
 
